@@ -1,34 +1,89 @@
 {% include 'header.html' %}
 
-    <h1 class="px-4 my-2 text-2xl text-center font-bold text-green-400">
-        On-The-Go Indexing
-    </h1>
+<div class="text-center py-8 animate-fade-in">
+	<h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-4">
+		<span class="material-symbols-outlined mr-3">bolt</span>On-The-Go Indexing
+	</h1>
+	<p class="text-base-content/70 text-lg max-w-2xl mx-auto">
+		Index any public Telegram channel or group instantly with just a username.
+		Access media files and search through messages on the fly.
+	</p>
+</div>
 
-    <div class="px-4 mx-auto my-2">
+<div class="card bg-base-100 shadow-2xl border border-base-300 max-w-lg mx-auto mt-8 animate-fade-in" style="animation-delay: 0.1s">
+	<div class="card-body p-8">
+		{% if error %}
+		<div class="alert alert-error mb-6 shadow-lg">
+			<span class="material-symbols-outlined">error</span>
+			<span>{{error}}</span>
+		</div>
+		{% endif %}
 
-        <p class="text-center text-gray-700">
-            On-The-Go (OTG) Indexing. Index any public telegram channel or public telegram group on the go with it's username.
-        </p>
+		<form class="space-y-6" action="/otg" method="POST">
+			<div class="form-control">
+				<label class="label" for="username_input">
+					<span class="label-text font-semibold">
+						<span class="material-symbols-outlined mr-2">alternate_email</span>
+						Telegram Username
+					</span>
+				</label>
+				<div class="join w-full">
+					<span class="join-item btn btn-disabled bg-base-300">
+						@
+					</span>
+					<input id="username_input"
+						name="id"
+						type="text"
+						class="input input-bordered join-item flex-1 focus:input-primary bg-base-200/50 rounded-r-xl"
+						placeholder="channel_username"
+						required
+						autocomplete="off">
+				</div>
+				<label class="label">
+					<span class="label-text-alt text-base-content/50">
+						Enter the username without the @ symbol
+					</span>
+				</label>
+			</div>
 
-    </div>
+			<button type="submit" class="btn btn-primary btn-block rounded-xl h-12 text-base gap-2">
+				<span class="material-symbols-outlined">search</span>
+				Index Channel
+			</button>
+		</form>
+	</div>
+</div>
 
-    {% if error %}
-        <div id="alert" class="px-4 mx-auto my-2 text-center m-2 ">
-            <p class="text-white bg-red-500 w-auto inline-block px-4 py-2 rounded-lg"> {{error}} </p>
-        </div>
-        <script>
-        setTimeout(function(){
-            document.getElementById("alert").style.display = 'none';
-        }, 7000);
-        </script>
-    {% endif %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto">
+	<div class="card bg-base-100 shadow-lg border border-base-300 animate-fade-in" style="animation-delay: 0.2s">
+		<div class="card-body items-center text-center p-8">
+			<div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4 shadow-lg">
+				<span class="material-symbols-outlined text-white text-2xl">bolt</span>
+			</div>
+			<h3 class="card-title font-bold">Instant Access</h3>
+			<p class="text-base-content/60">Get immediate access to public channel content</p>
+		</div>
+	</div>
 
-    <div class="px-4 mx-auto my-2">
-        <form class="my-2 text-center flex justify-center" action="/otg" method="POST">
-                <input class="px-4 py-2 rounded-l-full border border-r-0 border-teal-400 outline-none" type="text" name="id" placeholder="Enter username..." required>
-                <button class="px-4 py-2 bg-teal-400 border border-teal-400 hover:bg-white hover:text-teal-400 text-white rounded-r-full outline-none" type="submit">Get Result</button>
-        </form>
-    </div>
+	<div class="card bg-base-100 shadow-lg border border-base-300 animate-fade-in" style="animation-delay: 0.3s">
+		<div class="card-body items-center text-center p-8">
+			<div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-secondary to-accent flex items-center justify-center mb-4 shadow-lg">
+				<span class="material-symbols-outlined text-white text-2xl">download</span>
+			</div>
+			<h3 class="card-title font-bold">Media Download</h3>
+			<p class="text-base-content/60">Download photos, videos, and files easily</p>
+		</div>
+	</div>
 
+	<div class="card bg-base-100 shadow-lg border border-base-300 animate-fade-in" style="animation-delay: 0.4s">
+		<div class="card-body items-center text-center p-8">
+			<div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-4 shadow-lg">
+				<span class="material-symbols-outlined text-white text-2xl">search</span>
+			</div>
+			<h3 class="card-title font-bold">Full Search</h3>
+			<p class="text-base-content/60">Search through all messages in the channel</p>
+		</div>
+	</div>
+</div>
 
 {% include 'footer.html' %}

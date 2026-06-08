@@ -1,50 +1,304 @@
 <!doctype html>
-<html class="light" lang="en">
+<html data-theme="dark" lang="en">
 
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Telegram Channel Index - Browse and download media files">
+        <meta name="theme-color" content="#6366f1">
 
-	<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.4/dist/tailwind-dark.min.css" rel="stylesheet">
-	<script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js">
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://mini.allinonereborn.fun/jiotv-inn/app/assets/css/player.css" rel="stylesheet" type="text/css" />
+        <script src="https://content.jwplatform.com/libraries/IDzF9Zmk.js"></script>
 
-	</script>
-	<script>
-		if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    document.documentElement.className = 'dark';
-    } else {
-      document.documentElement.className = 'light';
-      }
-	</script>
-	<style>
-		@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
-		* {
-			font-family: 'Roboto', sans-serif;
-		}
-	</style>
+        <style>
+                /* Netflix-inspired Player Theme */
+                .jwplayer.jw-theme-netflix {
+                        --netflix-red: #E50914;
+                        --netflix-black: #141414;
+                        --netflix-dark: #181818;
+                        --netflix-gray: #808080;
+                        --netflix-white: #FFFFFF;
+                }
 
-	<title>
-		{% if title %} {{title}} {% else %} Telegram Index {% endif %}
-	</title>
+                .jwplayer.jw-theme-netflix .jw-controlbar {
+                        background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%) !important;
+                }
 
+                .jwplayer.jw-theme-netflix .jw-progress {
+                        background: var(--netflix-red) !important;
+                        height: 4px !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-rail {
+                        background: rgba(255,255,255,0.3) !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-knob {
+                        background: var(--netflix-red) !important;
+                        width: 14px !important;
+                        height: 14px !important;
+                        border: 2px solid white !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-button {
+                        color: white !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-button:hover {
+                        color: var(--netflix-red) !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-time {
+                        color: var(--netflix-gray) !important;
+                        font-family: 'Inter', sans-serif !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-tooltip-time {
+                        background: var(--netflix-dark) !important;
+                        color: white !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-menu {
+                        background: var(--netflix-dark) !important;
+                        border: 1px solid #333 !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-menu-item {
+                        color: white !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-menu-item:hover,
+                .jwplayer.jw-theme-netflix .jw-menu-item.jw-active-option {
+                        background: var(--netflix-red) !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-dock-button {
+                        background: rgba(0,0,0,0.6) !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-dock-button:hover {
+                        background: var(--netflix-red) !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-slider-horizontal:hover .jw-knob {
+                        transform: scale(1.2);
+                }
+
+                /* Netflix-style center play button */
+                .jwplayer.jw-theme-netflix .jw-display-icon-container {
+                        background: rgba(0,0,0,0.7) !important;
+                        border-radius: 50% !important;
+                        transition: all 0.3s ease !important;
+                }
+
+                .jwplayer.jw-theme-netflix .jw-display-icon-container:hover {
+                        background: var(--netflix-red) !important;
+                        transform: scale(1.1);
+                }
+
+                /* Quality selector Netflix style */
+                .jwplayer.jw-theme-netflix .jw-quality-menu {
+                        background: var(--netflix-dark) !important;
+                }
+
+                /* Logo styling */
+                .jwplayer.jw-theme-netflix .jw-logo {
+                        top: 10px !important;
+                        right: 10px !important;
+                }
+
+                /* Fullscreen styling */
+                .jwplayer.jw-theme-netflix.jw-fullscreen .jw-top {
+                        background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent) !important;
+                }
+
+                /* Buffering spinner */
+                .jwplayer.jw-theme-netflix .jw-spinner {
+                        border: 3px solid rgba(255,255,255,0.3) !important;
+                        border-top-color: var(--netflix-red) !important;
+                }
+
+                /* Caption styling */
+                .jwplayer.jw-theme-netflix .jw-captions {
+                        font-family: 'Inter', sans-serif !important;
+                        font-size: 1.1em !important;
+                        text-shadow: 2px 2px 2px rgba(0,0,0,0.8) !important;
+                }
+
+                /* Video player container Netflix style */
+                .player-container-netflix {
+                        position: relative;
+                        background: #000;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+                }
+
+                .player-container-netflix::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 4px;
+                        background: linear-gradient(90deg, var(--netflix-red) 0%, #ff6b6b 50%, var(--netflix-red) 100%);
+                        z-index: 10;
+                }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+        <style>
+                * { font-family: 'Inter', system-ui, sans-serif; }
+                .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+                :root {
+                        --transition-speed: 0.2s;
+                }
+
+                body {
+                        transition: none;
+                }
+
+                .theme-toggle {
+                        position: relative;
+                        width: 56px;
+                        height: 28px;
+                        background: #334155;
+                        border-radius: 999px;
+                        cursor: pointer;
+                        border: none;
+                        padding: 0;
+                        flex-shrink: 0;
+                        transition: background 0.15s;
+                }
+                .theme-toggle-knob {
+                        position: absolute;
+                        top: 3px;
+                        left: 3px;
+                        width: 22px;
+                        height: 22px;
+                        border-radius: 50%;
+                        background: #fff;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: transform 0.15s cubic-bezier(.4,0,.2,1);
+                        box-shadow: 0 1px 4px rgba(0,0,0,.3);
+                }
+                [data-theme="light"] .theme-toggle {
+                        background: #f59e0b;
+                }
+                [data-theme="light"] .theme-toggle-knob {
+                        transform: translateX(28px);
+                        background: #fff;
+                }
+                .theme-toggle-icon {
+                        width: 13px;
+                        height: 13px;
+                        pointer-events: none;
+                }
+
+                @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(10px); }
+                        to { opacity: 1; transform: translateY(0); }
+                }
+
+                @keyframes shimmer {
+                        0% { background-position: -200% 0; }
+                        100% { background-position: 200% 0; }
+                }
+
+                .animate-fade-in {
+                        animation: fadeIn 0.4s ease-out forwards;
+                }
+
+                .skeleton-loading {
+                        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+                        background-size: 200% 100%;
+                        animation: shimmer 1.5s infinite;
+                }
+
+                .card-hover {
+                        transition: transform 0.2s ease, box-shadow 0.2s ease;
+                }
+
+                .card-hover:hover {
+                        transform: translateY(-4px);
+                        box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.3);
+                }
+
+                .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+                .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+                .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        </style>
+
+        <script>
+                (function() {
+                        const theme = localStorage.theme ||
+                                (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                        document.documentElement.setAttribute('data-theme', theme);
+                })();
+        </script>
+
+        <title>{% if title %}{{ title | safe }}{% else %}Telegram Index{% endif %}</title>
 </head>
 
-<body class="bg-white text-black dark:bg-black dark:text-white">
+<body class="bg-base-200 text-base-content min-h-screen flex flex-col">
 
-	<header class="bg-blue-300 dark:bg-red-500 text-white mb-2 p-2 w-full shadow">
-		<div class="flex mx-auto justify-between items-center max-w-screen-xl">
-			<a href="/" id="title-a" class="text-left font-bold text-xl lg:text-2xl xl:text-3xl"> Telegram index </a>
-			<div class="space-x-1">
-				<button onclick="toggleTheme()" class="rounded-full bg-white">
-        <img src="https://s3.imgcdn.dev/nW9YV.png" class="h-8" alt="Theme">
-      </button>
-			{% if authenticated %}
-      <button class="rounded-full bg-white"><a href="/logout">
-      <img src="https://s3.imgcdn.dev/ndsjh.png" class="h-8" alt="Logout">
-      </a>
-      </button>
-      {% else %} {% endif %}
-      </div>
-		</div>
+<header class="sticky top-0 z-50 backdrop-blur-lg bg-base-200/80 border-b border-base-300">
+        <div class="container mx-auto px-4">
+                <div class="navbar min-h-16">
+                        <div class="navbar-start">
+                                <a href="/" class="flex items-center gap-3 text-xl font-bold hover:text-primary transition-colors">
+                                        <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" width="40" height="40" style="border-radius:10px;flex-shrink:0;" preserveAspectRatio="xMidYMid"><defs><linearGradient id="tg-a" x1="50%" x2="50%" y1="0%" y2="100%"><stop offset="0%" stop-color="#2AABEE"/><stop offset="100%" stop-color="#229ED9"/></linearGradient></defs><path fill="url(#tg-a)" d="M128 0C94.06 0 61.48 13.494 37.5 37.49A128.038 128.038 0 0 0 0 128c0 33.934 13.5 66.514 37.5 90.51C61.48 242.506 94.06 256 128 256s66.52-13.494 90.5-37.49c24-23.996 37.5-56.576 37.5-90.51 0-33.934-13.5-66.514-37.5-90.51C194.52 13.494 161.94 0 128 0Z"/><path fill="#FFF" d="M57.94 126.648c37.32-16.256 62.2-26.974 74.64-32.152 35.56-14.786 42.94-17.354 47.76-17.441 1.06-.017 3.42.245 4.96 1.49 1.28 1.05 1.64 2.47 1.82 3.467.16.996.38 3.266.2 5.038-1.92 20.24-10.26 69.356-14.5 92.026-1.78 9.592-5.32 12.808-8.74 13.122-7.44.684-13.08-4.912-20.28-9.63-11.26-7.386-17.62-11.982-28.56-19.188-12.64-8.328-4.44-12.906 2.76-20.386 1.88-1.958 34.64-31.748 35.26-34.45.08-.338.16-1.598-.6-2.262-.74-.666-1.84-.438-2.64-.258-1.14.256-19.12 12.152-54 35.686-5.1 3.508-9.72 5.218-13.88 5.128-4.56-.098-13.36-2.584-19.9-4.708-8-2.606-14.38-3.984-13.82-8.41.28-2.304 3.46-4.662 9.52-7.072Z"/></svg>
+                                        <span class="whitespace-nowrap">Telegram Index</span>
+                                </a>
+                        </div>
 
-	</header>
-	<div class="m-auto w-full min-h-screen max-w-screen-xl">
+                        <div class="navbar-end gap-2">
+                                <button onclick="toggleTheme()" class="theme-toggle" title="Toggle Theme" aria-label="Toggle theme">
+                                        <div class="theme-toggle-knob">
+                                                <svg class="theme-toggle-icon light-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5">
+                                                        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                                                </svg>
+                                                <svg class="theme-toggle-icon dark-icon" viewBox="0 0 24 24" fill="#6366f1" stroke="none">
+                                                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                                                </svg>
+                                        </div>
+                                </button>
+
+                                {% if authenticated %}
+                                <a href="/logout" class="btn btn-ghost btn-circle" title="Logout" aria-label="Logout">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                        </svg>
+                                </a>
+                                {% endif %}
+                        </div>
+                </div>
+        </div>
+</header>
+
+<style>
+        [data-theme="dark"] .light-icon { display: none; }
+        [data-theme="dark"] .dark-icon { display: block; }
+        [data-theme="light"] .light-icon { display: block; }
+        [data-theme="light"] .dark-icon { display: none; }
+</style>
+
+<main class="flex-1 container mx-auto px-4 py-6">
+
+<script>
+        function toggleTheme() {
+                const html = document.documentElement;
+                const currentTheme = html.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                html.setAttribute('data-theme', newTheme);
+                localStorage.theme = newTheme;
+        }
+</script>

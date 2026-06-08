@@ -1,0 +1,49 @@
+modules = ["python-3.12", "web", "nodejs-20"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+packages = ["cargo", "freetype", "lcms2", "libiconv", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "openssl", "rustc", "tcl", "tk", "zlib", "code-server", "nano", "opencode"]
+
+[userenv]
+
+[userenv.shared]
+API_ID = "964098"
+PORT = "5000"
+API_HASH = "3a40779521bc99b4c9753572ddd17ee7"
+SESSION_STRING = "1BVtsOKIBuzxzYSRe1YYf1IHe02W4iMZUHyMIR9rdLGjH6apna953BrsnCixhY9SG6gTxFRNwrlec96iA622GjQrcHNMLOmU76QKjk-XNP5PSMYIQf0-1N6TSVqe3XEp4n8ClXev53DCIR0dQyR5l4jZJivjL9gA-PjqLMuCfwSz6TiehA80xEP6lOxipGeivh0GOI8h2lIbKmLn65XKzp67JMTVwLHdpyCJBaa-c6dX60mWenhe6bxK2RWJjA2ZrKmMJxJAaCrRFxhHYYNPfJU9PjrS2sCBvkPmappc6FuNItWnDp-SjizkrNPxP30YAi1UC3lTeoaEYmMYRq-yYiIkxZzBRLCc="
+index_all = "true"
+INDEX_SETTINGS = "{\"index_all\":true,\"index_private\":true,\"index_group\":true,\"index_channel\":true,\"exclude_chats\":[],\"include_chats\":[]}"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python repl-config/run-repl.py"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[deployment]
+deploymentTarget = "vm"
+run = ["python", "repl-config/run-repl.py"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80

@@ -5,7 +5,7 @@ import aiohttp_jinja2
 from aiohttp import web
 from telethon.tl import types
 from telethon.tl.custom import Message
-from jinja2 import Markup
+from markupsafe import Markup
 
 from app.util import get_file_name, get_human_size
 from app.config import block_downloads
@@ -14,97 +14,151 @@ from .base import BaseView
 
 log = logging.getLogger(__name__)
 
+VIDEO_EXTS = frozenset(
+    ("mp4", "mkv", "avi", "mov", "webm", "ts", "3gp", "m4v", "flv", "wmv")
+)
+AUDIO_EXTS = frozenset(("mp3", "wav", "ogg", "m4a", "flac", "aac", "wma", "aiff"))
+IMAGE_EXTS = frozenset(
+    ("jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico", "tiff")
+)
+
+
+def _get_media_type(mime_type: str, filename: str) -> str:
+    ext = ""
+    if "." in filename:
+        ext = filename.rsplit(".", 1)[-1].lower()
+
+    mime_lower = mime_type.lower()
+    if any(m in mime_lower for m in ("video",)) or ext in VIDEO_EXTS:
+        return "video"
+    if any(m in mime_lower for m in ("audio",)) or ext in AUDIO_EXTS:
+        return "audio"
+    if any(m in mime_lower for m in ("image",)) or ext in IMAGE_EXTS:
+        return "image"
+    if "pdf" in mime_lower or ext == "pdf":
+        return "pdf"
+    return "file"
+
 
 class InfoView(BaseView):
     @aiohttp_jinja2.template("info.html")
-    async def info(self, req: web.Request) -> web.Response:
-        file_id = int(req.match_info["id"])
-        alias_id = req.match_info["chat"]
-        chat = self.chat_ids[alias_id]
-        chat_id = chat["chat_id"]
+    async def info(self, req: web.Request) -> dict:
+        alias_id = req.match_info.get("chat", "")
+        file_id_str = req.match_info.get("id", "")
+
+        if not alias_id or not file_id_str:
+            return {"found": False, "reason": "Invalid request", "authenticated": False}
+
         try:
-            message = await self.client.get_messages(entity=chat_id, ids=file_id)
-        except Exception:
-            log.debug(f"Error in getting message {file_id} in {chat_id}", exc_info=True)
+            file_id = int(file_id_str)
+        except ValueError:
+            return {"found": False, "reason": "Invalid file ID", "authenticated": False}
+
+        chat = self.chat_ids.get(alias_id)
+        if not chat:
+            return {"found": False, "reason": "Chat not found", "authenticated": False}
+
+        try:
+            message = await self.client.get_messages(entity=chat.chat_id, ids=file_id)
+        except Exception as e:
+            log.error(f"Error getting message: {e}")
             message = None
 
-        if not message or not isinstance(message, Message):
-            log.debug(f"no valid entry for {file_id} in {chat_id}")
+        if not message:
             return {
                 "found": False,
-                "reason": "Resource you are looking for cannot be retrived!",
-                "authenticated": req.app["is_authenticated"],
+                "reason": "Message not found",
+                "authenticated": False,
             }
 
-        return_val = {
-            "authenticated": req.app["is_authenticated"],
+        result = {
+            "authenticated": req.app.get("is_authenticated", False),
+            "found": True,
         }
+
         reply_btns = []
-        if message.reply_markup:
-            if isinstance(message.reply_markup, types.ReplyInlineMarkup):
-                reply_btns = [
-                    [
-                        {"url": button.url, "text": button.text}
-                        for button in button_row.buttons
-                        if isinstance(button, types.KeyboardButtonUrl)
-                    ]
-                    for button_row in message.reply_markup.rows
-                ]
+        if message.reply_markup and hasattr(message.reply_markup, "rows"):
+            try:
+                for row in message.reply_markup.rows:
+                    for btn in row.buttons:
+                        if hasattr(btn, "url") and hasattr(btn, "text"):
+                            reply_btns.append({"url": btn.url, "text": btn.text})
+            except Exception:
+                pass
 
-        if message.file and not isinstance(message.media, types.MessageMediaWebPage):
+        if message.file:
+            mime_type = getattr(message.file, "mime_type", "") or ""
             file_name = get_file_name(message)
-            human_file_size = get_human_size(message.file.size)
-            media = {"type": message.file.mime_type}
-            if "video/" in message.file.mime_type:
-                media["video"] = True
-            elif "audio/" in message.file.mime_type:
-                media["audio"] = True
-            elif "image/" in message.file.mime_type:
-                media["image"] = True
+            human_size = get_human_size(message.file.size)
+            media_type = _get_media_type(mime_type, file_name)
 
-            if message.text:
-                caption = message.raw_text
-            else:
-                caption = ""
+            download_url = (
+                "#" if block_downloads else f"/{alias_id}/{file_id}/{file_name}"
+            )
+            unquoted_name = unquote(file_name)
 
-            caption_html = Markup.escape(caption).__str__().replace("\n", "<br>")
-            return_val.update(
+            result.update(
                 {
-                    "found": True,
-                    "name": unquote(file_name),
+                    "name": unquoted_name,
                     "file_id": file_id,
-                    "human_size": human_file_size,
-                    "media": media,
-                    "caption_html": caption_html,
-                    "title": f"Download | {file_name} | {human_file_size}",
-                    "reply_btns": reply_btns,
+                    "human_size": human_size,
+                    "media_type": media_type,
+                    "mime_type": mime_type,
+                    "caption_html": Markup.escape(message.text or "")
+                    .__str__()
+                    .replace("\n", "<br>")
+                    if message.text
+                    else "",
+                    "title": unquoted_name,
+                    "reply_btns": [
+                        reply_btns[i : i + 3] for i in range(0, len(reply_btns), 3)
+                    ],
                     "thumbnail": f"/{alias_id}/{file_id}/thumbnail",
-                    "download_url": "#"
-                    if block_downloads
-                    else f"/{alias_id}/{file_id}/{file_name}",
+                    "download_url": download_url,
                     "page_id": alias_id,
                     "block_downloads": block_downloads,
                 }
             )
+
         elif message.message:
-            text = message.raw_text
-            text_html = Markup.escape(text).__str__().replace("\n", "<br>")
-            return_val.update(
+            result.update(
                 {
-                    "found": True,
-                    "media": False,
-                    "text_html": text_html,
-                    "reply_btns": reply_btns,
+                    "media_type": "text",
+                    "text_html": Markup.escape(message.message)
+                    .__str__()
+                    .replace("\n", "<br>"),
                     "page_id": alias_id,
                 }
             )
+
         else:
-            return_val.update(
+            result.update(
                 {
-                    "found": False,
-                    "reason": "Some kind of resource that I cannot display",
+                    "media_type": "unknown",
+                    "page_id": alias_id,
                 }
             )
 
-        log.debug(f"data for {file_id} in {chat_id} returned as {return_val}")
-        return return_val
+        # Add prev/next navigation (older = smaller id, newer = larger id)
+        try:
+            entity = await self.client.get_entity(chat.chat_id)
+            prev_msgs = await self.client.get_messages(
+                entity=entity, limit=1, max_id=file_id
+            )
+            if prev_msgs:
+                result["prev_url"] = f"/{alias_id}/{prev_msgs[0].id}/view"
+
+            next_msgs = await self.client.get_messages(
+                entity=entity, limit=1, min_id=file_id, reverse=True
+            )
+            if next_msgs:
+                result["next_url"] = f"/{alias_id}/{next_msgs[0].id}/view"
+
+            log.debug(
+                f"Prev/next for {alias_id}/{file_id}: "
+                f"prev={result.get('prev_url')} next={result.get('next_url')}"
+            )
+        except Exception as e:
+            log.warning(f"Error building prev/next nav for {alias_id}/{file_id}: {e}")
+
+        return result

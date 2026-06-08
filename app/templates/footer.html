@@ -1,26 +1,29 @@
-</div>
-<footer class="w-full my-4 py-4 bg-gray-300 xl:text-xl">
-	<div class="mx-auto text-center text-black max-w-screen-xl">
-		<a href="https://github.com/odysseusmax/tg-index" target="_blank"> @odysseusmax </a>
+</main>
+
+<footer class="mt-auto border-t border-base-300 bg-base-200/50">
+	<div class="container mx-auto px-4 py-6">
+		<div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-base-content/60">
+			<div class="flex items-center gap-2">
+				<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+					<span class="material-symbols-outlined text-white text-sm">send</span>
+				</div>
+				<span>Telegram Index</span>
+			</div>
+
+			<div class="flex items-center gap-4">
+				<a href="https://github.com/odysseusmax/tg-index"
+				   target="_blank"
+				   rel="noopener noreferrer"
+				   class="flex items-center gap-2 hover:text-primary transition-colors">
+					<span class="material-symbols-outlined">code</span>
+					<span>@odysseusmax</span>
+				</a>
+				<span class="hidden sm:inline">|</span>
+				<span>Powered by Telethon</span>
+			</div>
+		</div>
 	</div>
 </footer>
-<script>
-	function toggleTheme() {
-  element = document.documentElement;
-  if (element.className == "light") {
-    element.className = "dark";
-    localStorage.theme = 'dark';
-    } else {
-      element.className = "light";
-      localStorage.theme = 'light';
-      }
-}
 
-function chatImgAlt() {
-    document.getElementById('chatimg').src = 'https://s3.imgcdn.dev/nWNtu.jpg'
-}
-
-</script>
 </body>
-
 </html>

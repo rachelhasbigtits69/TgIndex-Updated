@@ -1,139 +1,260 @@
-{% include 'header.html' %} {% block javascript %}
-<script type="text/javascript">
-	{% include "./js/filesaver.min.js" %}
-    {% include "./js/playlist.js" %}
+{% include 'header.html' %}
 
-</script>
-{% endblock %}
+<div class="card bg-base-100 shadow-lg mb-6 animate-fade-in border border-base-300">
+	<div class="card-body flex flex-col lg:flex-row items-center justify-between gap-4 p-4">
+		<div class="flex items-center gap-4">
+			<img class="w-14 h-14 rounded-2xl ring-4 ring-primary/20 shadow-lg" src="{{logo}}" alt="{{name}}" loading="lazy">
+			<div>
+				<h2 class="card-title text-xl font-bold">
+					<a href="?" class="hover:text-primary transition-colors">{{name}}</a>
+				</h2>
+				<p class="text-sm text-base-content/60">
+					<span class="material-symbols-outlined mr-1 text-sm">layers</span>{{item_list|length}} items shown
+				</p>
+			</div>
+		</div>
 
-<div class="block md:flex justify-between items-center px-4 text-center border-b-2">
-	<div class="m-2 block md:flex items-center justify-center md:justify-start text-2xl md:text-right font-bold text-blue-500">
-		<img class="mx-auto md:ml-0 md:mr-1 my-4 md:my-2 w-16 h-16 rounded-full bg-black outline-none" src="{{logo}}">
-        <a href="javascript:window.location.href=window.location.href"> {{name}} </a>
-    </div>
+		<div class="w-full lg:w-auto flex flex-col sm:flex-row gap-3 items-center">
+			<div class="flex items-center gap-2">
+				<label class="text-sm text-base-content/70">Show:</label>
+				<select id="limitSelect" class="select select-bordered select-sm w-24" onchange="updateLimit(this.value)">
+					{% for opt in limit_options %}
+					<option value="{{opt}}" {% if opt == current_limit %}selected{% endif %}>{{opt}} items</option>
+					{% endfor %}
+				</select>
+			</div>
 
-    <div class="m-2">
-        <form class="">
-
-            <div class="my-4 md:my-2">
-                <div class="flex items-center rounded-full shadow dark:bg-white">
-                    <input class="rounded-l-full w-full py-1 px-6 text-gray-700 leading-tight focus:outline-none dark:text-black"
-                        name="search" id="search" value="{% if search %}{{search}}{% endif %}" type="text"
-                        placeholder="Search">
-                    <div class="p-1">
-                        <button
-                            class="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-400 focus:outline-none w-12 h-12 flex items-center justify-center">
-                            <div><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg></div>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-        </form>
-    </div>
-
+			<form id="searchForm" class="relative flex-1 lg:flex-initial lg:w-80" method="GET">
+				<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40 z-10 text-lg">search</span>
+				<input type="text"
+					class="input input-bordered w-full pl-11 pr-24 h-11 bg-base-200/50 border-base-300 focus:border-primary"
+					placeholder="Search files..."
+					name="search"
+					id="search"
+					value="{% if search %}{{search}}{% endif %}">
+				<input type="hidden" name="limit" id="limitInput" value="{{current_limit}}">
+				<button type="submit" class="btn btn-primary btn-sm absolute right-1 top-1/2 -translate-y-1/2 rounded-lg px-4 h-9">
+					<span class="material-symbols-outlined text-sm">search</span>
+				</button>
+			</form>
+		</div>
+	</div>
 </div>
+
+<script>
+	function updateLimit(value) {
+		localStorage.setItem('tgindex_limit', value);
+		const url = new URL(window.location.href);
+		url.searchParams.set('limit', value);
+		url.searchParams.set('page', '1');
+		window.location.href = url.toString();
+	}
+
+	document.addEventListener('DOMContentLoaded', function() {
+		const urlParams = new URLSearchParams(window.location.search);
+		const storedLimit = localStorage.getItem('tgindex_limit');
+		if (!urlParams.has('limit') && storedLimit && storedLimit !== "{{current_limit}}") {
+			updateLimit(storedLimit);
+		}
+	});
+</script>
 
 {% if item_list %}
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+	{% for item in item_list %}
+	{% set ext = item.filename.split('.')[-1].lower() if '.' in item.filename else '' %}
+	{% set badge_class = 'badge-neutral' %}
+	{% set badge_icon = 'insert_drive_file' %}
+	{% if 'pdf' in item.mime_type or ext == 'pdf' %}
+		{% set badge_class = 'badge-error' %}
+		{% set badge_icon = 'fa-file-pdf' %}
+	{% elif 'zip' in item.mime_type or 'compressed' in item.mime_type or ext in ['zip','rar','7z','tar','gz'] %}
+		{% set badge_class = 'badge-warning' %}
+		{% set badge_icon = 'folder_zip' %}
+	{% elif 'video' in item.mime_type or ext in ['mp4','mkv','avi','mov','webm'] %}
+		{% set badge_class = 'badge-secondary' %}
+		{% set badge_icon = 'video_file' %}
+	{% elif 'audio' in item.mime_type or ext in ['mp3','wav','ogg','m4a'] %}
+		{% set badge_class = 'badge-accent' %}
+		{% set badge_icon = 'audio_file' %}
+	{% elif 'image' in item.mime_type or ext in ['jpg','jpeg','png','gif','webp','svg'] %}
+		{% set badge_class = 'badge-primary' %}
+		{% set badge_icon = 'image' %}
+	{% elif ext in ['doc','docx'] %}
+		{% set badge_class = 'badge-info' %}
+		{% set badge_icon = 'description' %}
+	{% elif ext in ['xls','xlsx','csv'] %}
+		{% set badge_class = 'badge-success' %}
+		{% set badge_icon = 'table_chart' %}
+	{% elif ext in ['ppt','pptx'] %}
+		{% set badge_class = 'badge-warning' %}
+		{% set badge_icon = 'slideshow' %}
+	{% elif ext in ['txt','md'] %}
+		{% set badge_class = 'badge-neutral' %}
+		{% set badge_icon = 'article' %}
+	{% elif ext in ['json','xml','html','css','js'] %}
+		{% set badge_class = 'badge-neutral' %}
+		{% set badge_icon = 'code' %}
+	{% elif ext in ['apk','exe'] %}
+		{% set badge_class = 'badge-error' %}
+		{% set badge_icon = 'android' %}
+	{% endif %}
+	{% set is_video = item.media_type == 'video' or 'video' in item.mime_type or ext in ['mp4','mkv','avi','mov','webm','ts','3gp'] %}
+	{% set is_audio = item.media_type == 'audio' or 'audio' in item.mime_type or ext in ['mp3','wav','ogg','m4a','flac','aac'] %}
+	{% set is_image = item.media_type == 'image' or 'image' in item.mime_type or ext in ['jpg','jpeg','png','gif','webp','svg','bmp'] %}
+	{% set is_pdf = item.media_type == 'pdf' or 'pdf' in item.mime_type or ext == 'pdf' %}
+	<div class="item-card card card-hover bg-base-100 shadow-md border border-transparent hover:border-primary/30 animate-fade-in overflow-hidden"
+		 style="animation-delay: {{ loop.index0 * 0.02 }}s"
+		 data-is-video="{{ 'true' if is_video else 'false' }}"
+		 data-download-url="{{ item.download }}"
+		 data-thumbnail="{{ item.thumbnail }}"
+		 data-mime-type="{{ item.mime_type }}">
 
-<div class="m-2">
-    <div class="block flex flex-wrap sm:justify-center items-center text-center break-all">
-        {% for item in item_list %}
+		{% if item.media %}
+		<a href="{{item.url}}" class="block">
+			<figure class="relative overflow-hidden flex items-center justify-center bg-base-300" style="height: 160px;">
+				<img src="{{item.thumbnail}}"
+					 class="w-full h-full object-contain"
+					 alt="{{item.filename}}"
+					 loading="lazy"
+					 style="background: #374151;"
+					 onerror="this.style.display='none'">
+				<div class="absolute top-2 right-2 badge badge-sm bg-black/70 text-white text-[10px]">
+					{{item.human_size}}
+				</div>
+				<div class="absolute bottom-2 left-2 badge {{badge_class}} badge-sm text-[10px] gap-1">
+					<span class="material-symbols-outlined text-[10px]">{{badge_icon}}</span>{{ext|upper if ext else 'FILE'}}
+				</div>
+			</figure>
+		</a>
+		<div class="card-body p-3 min-h-0">
+			<p class="text-xs text-base-content/70 line-clamp-2 break-words leading-tight mb-2 searchable-text" data-original="{{item.insight}}">{{item.insight}}</p>
 
-        <!-- Card  -->
-        <div title="{% if item.media %} {{item.mime_type}} | {{item.human_size}} {% else %} Text message {% endif %}"
-            href="{{item.url}}"
-            class="text-sm items-center justify-center w-full min-h-full sm:w-2/5 md:w-1/4 lg:w-1/6 rounded m-2 shadow hover:shadow-lg dark:bg-red-700">
+			<div class="flex items-center justify-center gap-2">
+				{% if is_video %}
+				<a href="{{item.url}}" title="Play" class="btn btn-xs btn-circle btn-info">
+					<span class="material-symbols-outlined text-sm">play_arrow</span>
+				</a>
+				{% elif is_audio %}
+				<a href="{{item.url}}" title="Play Audio" class="btn btn-xs btn-circle btn-info">
+					<span class="material-symbols-outlined text-sm">music_note</span>
+				</a>
+				{% elif is_image %}
+				<a href="{{item.url}}" title="View" class="btn btn-xs btn-circle btn-primary">
+					<span class="material-symbols-outlined text-sm">image</span>
+				</a>
+				{% elif is_pdf %}
+				<a href="{{item.url}}" title="View PDF" class="btn btn-xs btn-circle btn-error">
+					<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+				</a>
+				{% else %}
+				<a href="{{item.url}}" title="View" class="btn btn-xs btn-circle btn-ghost">
+					<span class="material-symbols-outlined text-sm">visibility</span>
+				</a>
+				{% endif %}
 
-            {% if item.media %}
+				{% if not block_downloads %}
+				<a href="{{item.download}}"
+				   class="btn btn-xs btn-circle btn-success"
+				   title="Download">
+					<span class="material-symbols-outlined text-sm">download</span>
+				</a>
+				{% endif %}
+			</div>
+		</div>
+		{% else %}
+		<a href="{{item.url}}" class="block p-4 min-h-[120px]">
+			<div class="flex items-center justify-center gap-3">
+				<div class="w-10 h-10 rounded-xl bg-base-300 flex items-center justify-center flex-shrink-0">
+					<span class="material-symbols-outlined text-base-content/50">{{badge_icon}}</span>
+				</div>
+				<p class="text-xs text-base-content/70 line-clamp-2 break-words searchable-text flex-1" data-original="{{item.insight}}">{{item.insight}}</p>
+			</div>
+		</a>
+		{% endif %}
 
-                <a href="{{item.url}}"><img src="{{item.thumbnail}}" class="w-full rounded shadow-inner"></a>
-                <div class="p-2">{{item.insight}}</div>
-                <!-- Buttons container -->
-                <span class="inline-flex mb-1 rounded shadow-inner dark:bg-green-500">                    
-                    {% if not block_downloads %}
-                        <!-- Direct file download button -->
-                        <a href="{{item.download}}"
-                            class="flex-1 hover:bg-blue-300 text-gray-900 font-semibold py-1 px-2 rounded items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
-                            </svg>
-                        </a>
-
-                        {% if 'video' in item.mime_type %}
-                            <!--  Kodi/media player supported url ending with v.mp4 -->
-                            <a title="v.mp4" href="{{item.download}}"
-                                class="flex-1 hover:bg-blue-300 text-gray-900 font-semibold py-1 px-2 rounded items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </a>
-
-                            <!-- One click single item playlist Download -->
-                            <button title="{{item.filename}}.m3u" onclick="singleItemPlaylist('{{item.download}}','{{item.filename}}', '{{m3u_option}}');"
-                                class="flex-1 hover:bg-blue-300 text-gray-900 font-semibold py-1 px-2 rounded items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
-                                </svg>
-                            </button>
-                        {% endif %}
-                    {% endif %}
-
-                </span>
-
-            {% else %}
-            <a href={{item.url}}>
-                <div class="p-4 rounded shadow-inner rounded text-dark py-0 px-2">{{item.insight}}</div>
-            </a>
-            {% endif %}
-            <div class="bg-blue-500 rounded text-white my-1 py-0 px-1">{{item.file_id}}</div>
-
-        </div>
-
-
-        {% endfor %}
-    </div>
-
+		<div class="px-3 pb-3">
+			<code class="badge badge-ghost badge-xs text-[10px] opacity-50">#{{item.file_id}}</code>
+		</div>
+	</div>
+	{% endfor %}
 </div>
 
-<p class="my-2 text-center font-semibold">
-    {{item_list|length}} items
-</p>
+<nav class="flex justify-center items-center gap-2 my-10">
+	{% if prev_page %}
+	<a class="btn btn-outline btn-primary gap-2" href="{{prev_page.url}}">
+		<span class="material-symbols-outlined">chevron_left</span>
+		<span class="hidden sm:inline">Page {{prev_page.no}}</span>
+	</a>
+	{% endif %}
 
-<div class="mx-auto my-2 text-center flex text-white content-center justify-center">
-    {% if prev_page %}
-    <a title="Previous page"
-        class="mx-2 p-2 border rounded bg-green-500 hover:border-green-500 hover:text-green-500 hover:bg-white"
-        href="{{prev_page.url}}">Page {{prev_page.no}}</a>
-    {% endif %}
-    <p
-        class="mx-2 p-2 border rounded border-green-500 text-green-500 hover:border-green-500 hover:text-green-500 hover:bg-white">
-        Page {{cur_page}}</p>
-    {% if next_page %}
-    <a title="Next page"
-        class="mx-2 p-2 border rounded bg-green-500 hover:border-green-500 hover:text-green-500 hover:bg-white"
-        href="{{next_page.url}}">Page {{next_page.no}}</a>
-    {% endif %}
-</div>
+	<div class="badge badge-lg badge-primary gap-2 px-4 py-4">
+		<span class="material-symbols-outlined">bookmark</span>
+		<span class="text-base">Page {{cur_page}}</span>
+	</div>
+
+	{% if next_page %}
+	<a class="btn btn-outline btn-primary gap-2" href="{{next_page.url}}">
+		<span class="hidden sm:inline">Page {{next_page.no}}</span>
+		<span class="material-symbols-outlined">chevron_right</span>
+	</a>
+	{% endif %}
+</nav>
 
 {% else %}
-
-<p class="my-4 text-center text-2xl md:text-3xl lg:text-4xl xl:text-5xl">
-    No message to display!
-</p>
-
+<div class="hero py-20">
+	<div class="hero-content text-center">
+		<div class="max-w-md">
+			<div class="text-7xl text-base-content/20 mb-6">
+				<span class="material-symbols-outlined">folder_open</span>
+			</div>
+			<h2 class="text-3xl font-bold text-base-content/70">No results found</h2>
+			<p class="py-4 text-base-content/50">Try adjusting your search or the items-per-page limit.</p>
+			<a href="?" class="btn btn-ghost btn-sm gap-2">
+				<span class="material-symbols-outlined">refresh</span>
+				Clear Search
+			</a>
+		</div>
+	</div>
+</div>
 {% endif %}
+
+<script>
+(function() {
+	const searchInput = document.getElementById('search');
+	const cards = document.querySelectorAll('.item-card');
+
+	function highlightText(text, term) {
+		if (!term) return text;
+		const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+		return text.replace(regex, '<mark style="background:#FBF719;color:#000;font-weight:bold;padding:0 2px;border-radius:3px">$1</mark>');
+	}
+
+	function performSearch(term) {
+		term = term.toLowerCase().trim();
+
+		cards.forEach(card => {
+			const textEls = card.querySelectorAll('.searchable-text');
+			let found = !term;
+
+			textEls.forEach(el => {
+				const original = el.dataset.original || el.textContent;
+				el.textContent = original;
+				if (term && original.toLowerCase().includes(term)) {
+					el.innerHTML = highlightText(original, term);
+					found = true;
+				}
+			});
+
+			card.style.display = found ? '' : 'none';
+		});
+	}
+
+	if (searchInput) {
+		searchInput.addEventListener('input', (e) => performSearch(e.target.value));
+		if (searchInput.value.trim()) performSearch(searchInput.value);
+	}
+})();
+</script>
 
 {% include 'footer.html' %}
