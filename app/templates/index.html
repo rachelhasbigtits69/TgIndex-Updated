@@ -1,59 +1,117 @@
-{% include 'header.html' %}
-            
-            <div class="block md:flex justify-between items-center px-4 text-center border-b-2">
-                <div class="m-2 block md:flex items-center justify-center md:justify-start text-2xl md:text-right font-bold text-blue-500">
-                    <img class="mx-auto md:ml-0 md:mr-1 my-2 w-16 h-16 rounded-full bg-black outline-none" src="{{logo}}">
-                    <h1> {{name}} </h1>
-                </div>
-                
-                <div class="m-2">
-                    <form class="">
-                        <input class="border rounded-full px-4 py-2 border-indigo-500 placeholder-indigo-500 text-indigo-500 outline-none" type="text" name="search" value="{% if search %}{{search}}{% endif %}" placeholder="search...">
-                    </form>
-                </div>
-                
-            </div>
-            
-            {% if item_list %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ file_name }} - TG Index Player</title>
 
-                <div class="mx-auto my-2 w-full px-4">
-                    <div class="block md:flex md:flex-wrap md:justify-center text-center break-all">
-                    {% for item in item_list %}
-                        <a title="{% if item.media %} {{item.mime_type}} | {{item.human_size}} {% else %} Text message {% endif %}" href="{{item.url}}" class="flex flex-col items-center justify-center w-full min-h-full md:w-1/5 lg:w-1/6 rounded my-4 md:mx-1 shadow-md hover:shadow-lg hover:bg-blue-100 hover:border hover:border-blue-200">
-                    
-                            {% if item.media %}
-                                <img src="{{item.thumbnail}}" class="w-full rounded">
-                                <div class="p-4 rounded">{{item.insight}}</div>
-                            {% else %}
-                                <div class="p-4 rounded">{{item.insight}}</div>
-                            {% endif %}
-                            
-                        </a>
-                    {% endfor %}
-                    </div>
-            
-                </div>
+    <!-- Plyr CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    
+    <style>
+        :root {
+            --plyr-color-main: #0088cc; /* Telegram Accent Color */
+        }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 960px;
+        }
+        .player-wrapper {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            background: #000;
+        }
+        .meta-card {
+            background: #1e293b;
+            margin-top: 16px;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-primary { background: #0088cc; color: #fff; }
+        .btn-primary:hover { background: #006699; }
+        .btn-vlc { background: #ff8800; color: #fff; }
+        .btn-vlc:hover { background: #cc6600; }
+        .btn-mx { background: #00a8ff; color: #fff; }
+        .btn-mx:hover { background: #0077b6; }
+    </style>
+</head>
+<body>
 
-                <p class="my-2 text-center font-semibold">
-                    {{item_list|length}} items
-                </p>
-                
-                <div class="mx-auto my-2 text-center flex text-white content-center justify-center">
-                    {% if prev_page %}
-                        <a title="Previous page" class="mx-2 p-2 border rounded bg-green-500 hover:border-green-500 hover:text-green-500 hover:bg-white" href="{{prev_page.url}}">Page {{prev_page.no}}</a>
-                    {% endif %}
-                    <p class="mx-2 p-2 border rounded border-green-500 text-green-500 hover:border-green-500 hover:text-green-500 hover:bg-white">Page {{cur_page}}</p>
-                    {% if next_page %}
-                        <a title="Next page" class="mx-2 p-2 border rounded bg-green-500 hover:border-green-500 hover:text-green-500 hover:bg-white" href="{{next_page.url}}">Page {{next_page.no}}</a>
-                    {% endif %}
-                </div>
-                
-            {% else %}
-                
-                <p class="my-4 text-center text-2xl md:text-3xl lg:text-4xl xl:text-5xl">
-                    No message to display!
-                </p>
-            
-            {% endif %}
+<div class="container">
+    <!-- Modern HTML5 Video Player -->
+    <div class="player-wrapper">
+        <video id="player" playsinline controls preload="metadata" poster="{{ thumbnail_url or '' }}">
+            <source src="{{ stream_url }}" type="{{ mime_type or 'video/mp4' }}" />
+            Your browser does not support HTML5 video streaming.
+        </video>
+    </div>
 
-{% include 'footer.html' %}
+    <!-- Metadata & External Player Actions -->
+    <div class="meta-card">
+        <h2>{{ file_name }}</h2>
+        <p>File Size: <strong>{{ file_size }}</strong></p>
+
+        <div class="btn-group">
+            <!-- Direct Download -->
+            <a href="{{ stream_url }}?download=true" class="btn btn-primary" download>
+                📥 Download File
+            </a>
+            
+            <!-- External Player Deep Links -->
+            <a href="vlc://{{ stream_url }}" class="btn btn-vlc">
+                🍊 Open in VLC
+            </a>
+            <a href="intent:{{ stream_url }}#Intent;package=com.mxtech.videoplayer.ad;type=video/*;end" class="btn btn-mx">
+                ▶️ Open in MX Player
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Plyr JS CDN -->
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const player = new Plyr('#player', {
+            controls: [
+                'play-large', 'restart', 'rewind', 'play', 'fast-forward',
+                'progress', 'current-time', 'duration', 'mute', 'volume',
+                'captions', 'settings', 'pip', 'airplay', 'fullscreen'
+            ],
+            seekTime: 10,
+            keyboard: { focused: true, global: true },
+            tooltips: { controls: true, seek: true }
+        });
+    });
+</script>
+
+</body>
+</html>
