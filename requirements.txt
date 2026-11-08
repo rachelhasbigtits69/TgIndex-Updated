@@ -1,5 +1,6 @@
-aiohttp
-aiohttp-jinja2
-telethon>=1.16.4
-cryptg
-pillow
+aiohttp>=3.9.0
+Telethon>=1.30.0
+pydantic-settings>=2.1.0
+Jinja2>=3.1.2
+Pillow>=10.0.0
+cryptography>=41.0.0
