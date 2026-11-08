@@ -1,45 +1,27 @@
-from pathlib import Path
-import traceback
-import json
-import sys
 import os
+import json
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 
+class Settings(BaseSettings):
+    API_ID: int = Field(..., env="API_ID")
+    API_HASH: str = Field(..., env="API_HASH")
+    SESSION_STRING: str = Field(..., env="SESSION_STRING")
+    SECRET_KEY: str = Field(default="a9f8e7d6c5b4a39281706f5e4d3c2b1a", env="SECRET_KEY")
+    INDEX_SETTINGS: str = Field(
+        default='{"index_all": true, "index_private": false, "index_group": false, "index_channel": true, "exclude_chats": [], "include_chats": []}', 
+        env="INDEX_SETTINGS"
+    )
+    PORT: int = Field(default=7860, env="PORT")
+    HOST: str = Field(default="0.0.0.0", env="HOST")
 
-try:
-    port = int(os.environ.get("PORT", "8080"))
-except ValueError:
-    port = -1
-if not 1 <= port <= 65535:
-    print("Please make sure the PORT environment variable is an integer between 1 and 65535")
-    sys.exit(1)
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-try:
-    api_id = int(os.environ["API_ID"])
-    api_hash = os.environ["API_HASH"]
-except (KeyError, ValueError):
-    traceback.print_exc()
-    print("\n\nPlease set the API_ID and API_HASH environment variables correctly")
-    print("You can get your own API keys at https://my.telegram.org/apps")
-    sys.exit(1)
+    @property
+    def parsed_index_settings(self) -> dict:
+        try:
+            return json.loads(self.INDEX_SETTINGS)
+        except Exception:
+            return {}
 
-try:
-    index_settings_str = os.environ["INDEX_SETTINGS"].strip()
-    index_settings = json.loads(index_settings_str)
-except:
-    traceback.print_exc()
-    print("\n\nPlease set the INDEX_SETTINGS environment variable correctly")
-    sys.exit(1)
-
-try:
-    session_string = os.environ["SESSION_STRING"]
-except (KeyError, ValueError):
-    traceback.print_exc()
-    print("\n\nPlease set the SESSION_STRING environment variable correctly")
-    sys.exit(1)
-
-host = os.environ.get("HOST", "0.0.0.0")
-debug = bool(os.environ.get("DEBUG"))
-block_downloads = bool(os.environ.get("BLOCK_DOWNLOADS"))
-results_per_page = int(os.environ.get("RESULTS_PER_PAGE", "20"))
-logo_folder = Path('logo/')
-logo_folder.mkdir(exist_ok=True)
+settings = Settings()
