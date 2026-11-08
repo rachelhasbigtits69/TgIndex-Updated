@@ -1,12 +1,26 @@
+import asyncio
 import logging
+from aiohttp import web
+from app.main import Indexer
 
-from .main import Indexer
-from .config import debug
+logging.basicConfig(level=logging.INFO)
 
+async def main():
+    indexer = Indexer()
+    app = await indexer.get_app()
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    
+    site = web.TCPSite(runner, indexer.host, indexer.port)
+    logging.info(f"Starting server on http://{indexer.host}:{indexer.port}")
+    await site.start()
+    
+    # Keep server running asynchronously
+    await asyncio.Event().wait()
 
-logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
-logging.getLogger("telethon").setLevel(logging.INFO if debug else logging.ERROR)
-logging.getLogger("aiohttp").setLevel(logging.INFO if debug else logging.ERROR)
-
-
-Indexer().run()
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logging.info("Server stopped.")
